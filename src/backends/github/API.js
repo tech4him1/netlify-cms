@@ -1,6 +1,7 @@
 import LocalForage from "localforage";
 import { Base64 } from "js-base64";
 import _ from "lodash";
+import { Map } from 'immutable';
 import { filterPromises, resolvePromiseProperties } from "../../lib/promiseHelper";
 import AssetProxy from "../../valueObjects/AssetProxy";
 import { SIMPLE, EDITORIAL_WORKFLOW, status } from "../../constants/publishModes";
@@ -211,26 +212,11 @@ export default class API {
   }
 
   composeFileTree(files) {
-    let filename;
-    let part;
-    let parts;
-    let subtree;
-    const fileTree = {};
-
-    files.forEach((file) => {
-      if (file.uploaded) { return; }
-      parts = file.path.split("/").filter(part => part);
-      filename = parts.pop();
-      subtree = fileTree;
-      while (part = parts.shift()) {
-        subtree[part] = subtree[part] || {};
-        subtree = subtree[part];
-      }
-      subtree[filename] = file;
-      file.file = true;
-    });
-
-    return fileTree;
+    return files
+      .filter(file => !file.uploaded)
+      .map(file => ({ ...file, file: true }))
+      .reduce((tree, file) => tree.setIn(file.path.split("/"), file), Map())
+      .toJS();
   }
 
   persistFiles(entry, mediaFiles, options) {
