@@ -1,6 +1,7 @@
 import { attempt, isError } from 'lodash';
 import TestRepoBackend from "./test-repo/implementation";
 import GitHubBackend from "./github/implementation";
+import GitLabBackend from "./gitlab/implementation";
 import NetlifyAuthBackend from "./netlify-auth/implementation";
 import { resolveFormat } from "../formats/formats";
 import { selectListMethod, selectEntrySlug, selectEntryPath, selectAllowNewEntries, selectFolderEntryExtension } from "../reducers/collections";
@@ -292,6 +293,8 @@ export function resolveBackend(config) {
       return new Backend(new TestRepoBackend(config), authStore);
     case "github":
       return new Backend(new GitHubBackend(config), authStore);
+    case "gitlab":
+      return new Backend(new GitLabBackend(config), authStore);
     case "netlify-auth":
       return new Backend(new NetlifyAuthBackend(config), authStore);
     default:
