@@ -67,7 +67,7 @@ export default class GitGateway extends GitHubBackend {
         this.api = new API({
           api_root: this.github_proxy_url,
           tokenPromise: this.tokenPromise,
-          commitAuthor: pick(userData, ["name", "email"]),
+          commitAuthor: userData,
         });
         return userData;
       } else {
