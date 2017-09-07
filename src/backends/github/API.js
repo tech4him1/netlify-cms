@@ -19,6 +19,15 @@ export default class API {
     return this.request("/user");
   }
 
+  hasWriteAccess() {
+    return this.request(this.repoURL)
+      .then(repo => repo.permissions.push)
+      .catch(error => {
+        console.error("Problem fetching repo data from GitHub");
+        throw error;
+      });
+  }
+
   requestHeaders(headers = {}) {
     const baseHeader = {
       "Content-Type": "application/json",
@@ -241,7 +250,6 @@ export default class API {
   persistFiles(entry, mediaFiles, options) {
     const uploadPromises = [];
     const files = mediaFiles.concat(entry);
-    
 
     files.forEach((file) => {
       if (file.uploaded) { return; }

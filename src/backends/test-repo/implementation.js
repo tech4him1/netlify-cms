@@ -36,6 +36,10 @@ export default class TestRepo {
     return Promise.resolve({ email: state.email, name: nameFromEmail(state.email) });
   }
 
+  logout() {
+    return null;
+  }
+
   getToken() {
     return Promise.resolve('');
   }
@@ -93,10 +97,10 @@ export default class TestRepo {
     return Promise.resolve();
   }
 
-  deleteEntry(path, commitMessage) {
+  deleteFile(path, commitMessage) {
     const folder = path.substring(0, path.lastIndexOf('/'));
     const fileName = path.substring(path.lastIndexOf('/') + 1);
-    window.repoFiles[folder][fileName] = undefined;
+    delete window.repoFiles[folder][fileName];
     return Promise.resolve();
   }
 }
