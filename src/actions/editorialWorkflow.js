@@ -1,6 +1,5 @@
 import uuid from 'uuid';
 import { actions as notifActions } from 'redux-notifications';
-import { serializeValues } from '../lib/serializeEntryValues';
 import { closeEntry } from './editor';
 import { BEGIN, COMMIT, REVERT } from 'redux-optimist';
 import { currentBackend } from '../backends/backend';
@@ -226,31 +225,24 @@ export function persistUnpublishedEntry(collection, existingUnpublishedEntry) {
     const entryDraft = state.entryDraft;
 
     // Early return if draft contains validation errors
-    if (!entryDraft.get('fieldsErrors').isEmpty()) return Promise.resolve();
+    if (!entryDraft.get('fieldsErrors').isEmpty()) return;
 
     const backend = currentBackend(state.config);
-    const transactionID = uuid.v4();
     const assetProxies = entryDraft.get('mediaFiles').map(path => getAsset(state, path));
     const entry = entryDraft.get('entry');
+    const transactionID = uuid.v4();
 
-    /**
-     * Serialize the values of any fields with registered serializers, and
-     * update the entry and entryDraft with the serialized values.
-     */
-    const serializedData = serializeValues(entryDraft.getIn(['entry', 'data']), collection.get('fields'));
-    const serializedEntry = entry.set('data', serializedData);
-    const serializedEntryDraft = entryDraft.set('entry', serializedEntry);
-
-    dispatch(unpublishedEntryPersisting(collection, serializedEntry, transactionID));
+    dispatch(unpublishedEntryPersisting(collection, entry, transactionID));
     const persistAction = existingUnpublishedEntry ? backend.persistUnpublishedEntry : backend.persistEntry;
-    return persistAction.call(backend, state.config, collection, serializedEntryDraft, assetProxies.toJS())
+    persistAction.call(backend, state.config, collection, entryDraft, assetProxies.toJS())
     .then(() => {
       dispatch(notifSend({
         message: 'Entry saved',
         kind: 'success',
         dismissAfter: 4000,
       }));
-      return dispatch(unpublishedEntryPersisted(collection, serializedEntry, transactionID));
+      dispatch(unpublishedEntryPersisted(collection, entry, transactionID));
+      dispatch(closeEntry());
     })
     .catch((error) => {
       dispatch(notifSend({
@@ -258,7 +250,7 @@ export function persistUnpublishedEntry(collection, existingUnpublishedEntry) {
         kind: 'danger',
         dismissAfter: 8000,
       }));
-      return dispatch(unpublishedEntryPersistedFail(error, transactionID));
+      dispatch(unpublishedEntryPersistedFail(error, transactionID));
     });
   };
 }

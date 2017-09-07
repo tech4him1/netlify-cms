@@ -15,7 +15,6 @@ function formatByType(type) {
 export function formatByExtension(extension) {
   return {
     yml: yamlFormatter,
-    yaml: yamlFormatter,
     json: jsonFormatter,
     md: FrontmatterFormatter,
     markdown: FrontmatterFormatter,
@@ -25,7 +24,6 @@ export function formatByExtension(extension) {
 
 function formatByName(name) {
   return {
-    yml: yamlFormatter,
     yaml: yamlFormatter,
     frontmatter: FrontmatterFormatter,
   }[name] || FrontmatterFormatter;

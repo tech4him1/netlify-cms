@@ -8,8 +8,8 @@
 
   & input,
   & textarea,
-  & select,
-  & div[contenteditable=true] {
+  & select {
+    font-family: 'SFMono-Regular', Consolas, "Liberation Mono", Menlo, Courier, monospace;
     display: block;
     width: 100%;
     padding: 12px;
@@ -27,12 +27,6 @@
     &:active {
       border-color: var(--primaryColor);
     }
-  }
-
-  & input,
-  & textarea,
-  & select {
-    font-family: var(--fontFamilyMono);
   }
 }
 
