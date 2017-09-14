@@ -54,7 +54,7 @@ export default class YAML {
     return yaml.safeLoad(content);
   }
 
-  toFile(data, sortedKeys = []) {
+  toFile(data, { sortedKeys = [] }) {
     return yaml.safeDump(data, { schema: OutputSchema, sortKeys: sortKeys(sortedKeys) });
   }
 }

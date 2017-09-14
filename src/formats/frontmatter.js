@@ -1,19 +1,34 @@
 import matter from 'gray-matter';
-import tomlEng from 'toml';
-import YAML from './yaml';
+import TOMLparser from './toml';
+import YAMLparser from './yaml';
+import JSONparser from './json';
+
+const YAMLFormatter = new YAMLparser();
+const TOMLFormatter = new TOMLparser();
+const JSONFormatter = new JSONparser();
 
 const parsers = {
-  toml: tomlEng.parse.bind(tomlEng),
-  json: (input) => {
-    let JSONinput = input.trim();
-    // Fix JSON if leading and trailing brackets were trimmed.
-    if (JSONinput.substr(0, 1) !== '{') {
-      JSONinput = '{' + JSONinput;
-    }
-    if (JSONinput.substr(-1) !== '}') {
-      JSONinput = JSONinput + '}';
-    }
-    return matter.engines.json.parse(JSONinput);
+  yaml: {
+    parse: YAMLFormatter.fromFile.bind(YAMLFormatter),
+    stringify: YAMLFormatter.toFile.bind(YAMLFormatter),
+  },
+  toml: {
+    parse: TOMLFormatter.fromFile.bind(TOMLFormatter),
+    stringify: TOMLFormatter.toFile.bind(TOMLFormatter),
+  },
+  json: {
+    parse(contents) {
+      let JSONinput = contents.trim();
+      // Fix JSON if leading and trailing brackets were trimmed.
+      if (JSONinput.substr(0, 1) !== '{') {
+        JSONinput = '{' + JSONinput;
+      }
+      if (JSONinput.substr(-1) !== '}') {
+        JSONinput = JSONinput + '}';
+      }
+      return JSONFormatter.fromFile(JSONinput);
+    },
+    stringify: JSONFormatter.toFile.bind(JSONFormatter),
   },
 }
 
@@ -53,13 +68,7 @@ export default class Frontmatter {
         meta[key] = data[key];
       }
     });
-
-    // always stringify to YAML
-    const parser = {
-      stringify(metadata) {
-        return new YAML().toFile(metadata, sortedKeys);
-      },
-    };
-    return matter.stringify(body, meta, { language: "yaml", delimiters: "---", engines: { yaml: parser } });
+    
+    return matter.stringify(body, meta, { language: "yaml", delimiters: "---", engines: parsers, sortedKeys });
   }
 }
