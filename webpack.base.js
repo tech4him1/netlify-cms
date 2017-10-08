@@ -73,6 +73,20 @@ module.exports = {
     new webpack.ProvidePlugin({
       fetch: 'imports-loader?this=>global!exports-loader?global.fetch!whatwg-fetch',
     }),
+
+    // Split vendor js into seperate bundle.
+    // https://webpack.js.org/plugins/commons-chunk-plugin/#passing-the-minchunks-property-a-function
+    new webpack.optimize.CommonsChunkPlugin({
+      name: "vendor",
+      minChunks: function (module) {
+        // This prevents stylesheet resources with the .css or .scss extension
+        // from being moved from their original chunk to the vendor chunk
+        if(module.resource && (/^.*\.(css|scss)$/).test(module.resource)) {
+          return false;
+        }
+        return module.context && module.context.indexOf("node_modules") !== -1;
+      }
+    }),
   ],
   target: 'web', // Make web variables accessible to webpack, e.g. window
 };
