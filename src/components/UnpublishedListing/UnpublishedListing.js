@@ -13,24 +13,22 @@ import UnpublishedListingCardMeta from './UnpublishedListingCardMeta.js';
 import { status, statusDescriptions } from '../../constants/publishModes';
 import styles from './UnpublishedListing.css';
 
-@DragSource(
+const DragComponent = DragSource(
   '---default---',
   {
-    beginDrag({ id }) => ({ id }),
+    beginDrag({ id }) {
+      return { id };
+    },
   },
   (connect, monitor) => ({
     connectDragComponent: connect.dragSource(),
   }),
-)
-class DragComponent extends Component {
-  render() {
-    const child = React.Children.only(this.props.children);
-    return this.props.connectDragComponent(child);
-  }
-}
+)(({ children, connectDragComponent }) => {
+  const child = React.Children.only(children);
+  return connectDragComponent(child);
+});
 
-@DragDropContext(HTML5Backend)
-export default class UnpublishedListing extends React.Component {
+class UnpublishedListing extends React.Component {
   static propTypes = {
     entries: ImmutablePropTypes.orderedMap,
     handleChangeStatus: PropTypes.func.isRequired,
@@ -154,3 +152,5 @@ export default class UnpublishedListing extends React.Component {
     );
   }
 }
+
+export default DragDropContext(HTML5Backend)(UnpublishedListing);
