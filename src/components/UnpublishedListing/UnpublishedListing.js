@@ -12,6 +12,8 @@ import UnpublishedListingCardMeta from './UnpublishedListingCardMeta.js';
 import { status, statusDescriptions } from '../../constants/publishModes';
 import styles from './UnpublishedListing.css';
 
+const DND_Namespace = 'cms-unpublished-entries';
+
 class UnpublishedListing extends React.Component {
   static propTypes = {
     entries: ImmutablePropTypes.orderedMap,
@@ -46,7 +48,7 @@ class UnpublishedListing extends React.Component {
       return entries.entrySeq().map(([currColumn, currEntries]) => {
         const handleChangeStatus = this.handleChangeStatus.bind(this, currColumn);
         const DropComponent = DropTarget(
-          '---default---',
+          DND_Namespace,
           {
             drop(ownProps, monitor) {
               handleChangeStatus(monitor.getItem());
@@ -80,7 +82,7 @@ class UnpublishedListing extends React.Component {
             const collection = entry.getIn(['metaData', 'collection']);
             const isModification = entry.get('isModification');
             const DragComponent = DragSource(
-              '---default---',
+              DND_Namespace,
               {
                 beginDrag({ children, isDragging, connectDragComponent, ...props }) {
                   return props;
