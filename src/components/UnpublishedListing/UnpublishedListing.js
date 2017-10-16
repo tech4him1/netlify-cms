@@ -1,8 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import { DropTarget } from 'react-simple-dnd';
 import HTML5Backend from 'react-dnd-html5-backend';
-import { DragDropContext, DragSource } from 'react-dnd';
+import { DragDropContext, DragSource, DropTarget } from 'react-dnd';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { Link } from 'react-router-dom';
 import moment from 'moment';
@@ -59,23 +58,30 @@ class UnpublishedListing extends React.Component {
     if (!entries) return null;
 
     if (!column) {
-      return entries.entrySeq().map(([currColumn, currEntries]) => (
-        <DropTarget
-          key={currColumn}
-          /* eslint-disable */
-          onDrop={this.handleChangeStatus.bind(this, currColumn)}
-          /* eslint-enable */
-        >
-          {isHovered => (
+      return entries.entrySeq().map(([currColumn, currEntries]) => {
+        const DropComponent = DropTarget(
+          '---default---',
+          {
+            drop(ownProps, monitor) {
+              this.handleChangeStatus.bind(this, currColumn)(monitor.getItem());
+            },
+          },
+          (connect, monitor) => ({
+              connectDropTarget: connect.dropTarget(),
+              isHovered: monitor.isOver(),
+          }),
+        )(({ connectDropTarget, isHovered }) => {
+          return connectDropTarget((
             <div className={isHovered ? styles.columnHovered : styles.column}>
               <h2 className={styles.columnHeading}>
                 {statusDescriptions.get(currColumn)}
               </h2>
               {this.renderColumns(currEntries, currColumn)}
             </div>
-          )}
-        </DropTarget>
-      ));
+          ));
+        });
+        return (<DropComponent key={currColumn}/>);
+      });
     }
     return (
       <div>
