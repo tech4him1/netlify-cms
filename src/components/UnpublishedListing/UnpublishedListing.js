@@ -65,7 +65,7 @@ class UnpublishedListing extends React.Component {
             </h2>
             {this.renderColumns(currEntries, currColumn)}
           </div>
-        );
+        ));
         return (<DropComponent key={currColumn}/>);
       });
     }
