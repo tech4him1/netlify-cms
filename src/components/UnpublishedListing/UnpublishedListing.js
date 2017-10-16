@@ -1,6 +1,8 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import { DragSource, DropTarget, HTML5DragDrop } from 'react-simple-dnd';
+import { DropTarget } from 'react-simple-dnd';
+import HTML5Backend from 'react-dnd-html5-backend';
+import { DragDropContext, DragSource } from 'react-dnd';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { Link } from 'react-router-dom';
 import moment from 'moment';
@@ -11,7 +13,24 @@ import UnpublishedListingCardMeta from './UnpublishedListingCardMeta.js';
 import { status, statusDescriptions } from '../../constants/publishModes';
 import styles from './UnpublishedListing.css';
 
-class UnpublishedListing extends React.Component {
+@DragSource(
+  '---default---',
+  {
+    beginDrag({ id }) => ({ id }),
+  },
+  (connect, monitor) => ({
+    connectDragComponent: connect.dragSource(),
+  }),
+)
+class DragComponent extends Component {
+  render() {
+    const child = React.Children.only(this.props.children);
+    return this.props.connectDragComponent(child);
+  }
+}
+
+@DragDropContext(HTML5Backend)
+export default class UnpublishedListing extends React.Component {
   static propTypes = {
     entries: ImmutablePropTypes.orderedMap,
     handleChangeStatus: PropTypes.func.isRequired,
@@ -73,7 +92,7 @@ class UnpublishedListing extends React.Component {
             const collection = entry.getIn(['metaData', 'collection']);
             const isModification = entry.get('isModification');
             return (
-              <DragSource
+              <DragComponent
                 key={slug}
                 slug={slug}
                 collection={collection}
@@ -115,7 +134,7 @@ class UnpublishedListing extends React.Component {
                     </CardActions>
                   </Card>
                 </div>
-              </DragSource>
+              </DragComponent>
             );
           })
         }
@@ -135,5 +154,3 @@ class UnpublishedListing extends React.Component {
     );
   }
 }
-
-export default HTML5DragDrop(UnpublishedListing); // eslint-disable-line
