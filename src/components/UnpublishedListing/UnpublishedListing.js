@@ -12,21 +12,6 @@ import UnpublishedListingCardMeta from './UnpublishedListingCardMeta.js';
 import { status, statusDescriptions } from '../../constants/publishModes';
 import styles from './UnpublishedListing.css';
 
-const DragComponent = DragSource(
-  '---default---',
-  {
-    beginDrag({ id }) {
-      return { id };
-    },
-  },
-  (connect, monitor) => ({
-    connectDragComponent: connect.dragSource(),
-  }),
-)(({ children, connectDragComponent }) => {
-  const child = React.Children.only(children);
-  return connectDragComponent(child);
-});
-
 class UnpublishedListing extends React.Component {
   static propTypes = {
     entries: ImmutablePropTypes.orderedMap,
@@ -59,27 +44,26 @@ class UnpublishedListing extends React.Component {
 
     if (!column) {
       return entries.entrySeq().map(([currColumn, currEntries]) => {
+        const handleChangeStatus = this.handleChangeStatus.bind(this, currColumn);
         const DropComponent = DropTarget(
           '---default---',
           {
             drop(ownProps, monitor) {
-              this.handleChangeStatus.bind(this, currColumn)(monitor.getItem());
+              handleChangeStatus(monitor.getItem());
             },
           },
           (connect, monitor) => ({
               connectDropTarget: connect.dropTarget(),
               isHovered: monitor.isOver(),
           }),
-        )(({ connectDropTarget, isHovered }) => {
-          return connectDropTarget((
-            <div className={isHovered ? styles.columnHovered : styles.column}>
-              <h2 className={styles.columnHeading}>
-                {statusDescriptions.get(currColumn)}
-              </h2>
-              {this.renderColumns(currEntries, currColumn)}
-            </div>
-          ));
-        });
+        )(({ connectDropTarget, isHovered }) => connectDropTarget(
+          <div className={isHovered ? styles.columnHovered : styles.column}>
+            <h2 className={styles.columnHeading}>
+              {statusDescriptions.get(currColumn)}
+            </h2>
+            {this.renderColumns(currEntries, currColumn)}
+          </div>
+        );
         return (<DropComponent key={currColumn}/>);
       });
     }
@@ -95,6 +79,19 @@ class UnpublishedListing extends React.Component {
             const ownStatus = entry.getIn(['metaData', 'status']);
             const collection = entry.getIn(['metaData', 'collection']);
             const isModification = entry.get('isModification');
+            const DragComponent = DragSource(
+              '---default---',
+              {
+                beginDrag({ children, isDragging, connectDragComponent, ...props }) {
+                  return props;
+                },
+              },
+              (connect, monitor) => ({
+                connectDragComponent: connect.dragSource(),
+              }),
+            )(({ children, connectDragComponent }) => {
+              return connectDragComponent(children);
+            });
             return (
               <DragComponent
                 key={slug}
