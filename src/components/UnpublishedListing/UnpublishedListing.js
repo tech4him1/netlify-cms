@@ -1,7 +1,6 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import HTML5Backend from 'react-dnd-html5-backend';
-import { DragDropContext, DragSource, DropTarget } from 'react-dnd';
+import { DragSource, DropTarget, HTML5DragDrop } from './dndHelpers';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { Link } from 'react-router-dom';
 import moment from 'moment';
@@ -11,8 +10,6 @@ import Button from 'react-toolbox/lib/button';
 import UnpublishedListingCardMeta from './UnpublishedListingCardMeta.js';
 import { status, statusDescriptions } from '../../constants/publishModes';
 import styles from './UnpublishedListing.css';
-
-const DND_Namespace = 'cms-unpublished-entries';
 
 class UnpublishedListing extends React.Component {
   static propTypes = {
@@ -45,29 +42,23 @@ class UnpublishedListing extends React.Component {
     if (!entries) return null;
 
     if (!column) {
-      return entries.entrySeq().map(([currColumn, currEntries]) => {
-        const handleChangeStatus = this.handleChangeStatus.bind(this, currColumn);
-        const DropComponent = DropTarget(
-          DND_Namespace,
-          {
-            drop(ownProps, monitor) {
-              handleChangeStatus(monitor.getItem());
-            },
-          },
-          (connect, monitor) => ({
-              connectDropTarget: connect.dropTarget(),
-              isHovered: monitor.isOver(),
-          }),
-        )(({ connectDropTarget, isHovered }) => connectDropTarget(
-          <div className={isHovered ? styles.columnHovered : styles.column}>
-            <h2 className={styles.columnHeading}>
-              {statusDescriptions.get(currColumn)}
-            </h2>
-            {this.renderColumns(currEntries, currColumn)}
-          </div>
-        ));
-        return (<DropComponent key={currColumn}/>);
-      });
+      return entries.entrySeq().map(([currColumn, currEntries]) => (
+        <DropTarget
+          key={currColumn}
+          /* eslint-disable */
+          onDrop={this.handleChangeStatus.bind(this, currColumn)}
+          /* eslint-enable */
+        >
+          {isHovered => (
+            <div className={isHovered ? styles.columnHovered : styles.column}>
+              <h2 className={styles.columnHeading}>
+                {statusDescriptions.get(currColumn)}
+              </h2>
+              {this.renderColumns(currEntries, currColumn)}
+            </div>
+          )}
+        </DropTarget>
+      ));
     }
     return (
       <div>
@@ -81,21 +72,8 @@ class UnpublishedListing extends React.Component {
             const ownStatus = entry.getIn(['metaData', 'status']);
             const collection = entry.getIn(['metaData', 'collection']);
             const isModification = entry.get('isModification');
-            const DragComponent = DragSource(
-              DND_Namespace,
-              {
-                beginDrag({ children, isDragging, connectDragComponent, ...props }) {
-                  return props;
-                },
-              },
-              (connect, monitor) => ({
-                connectDragComponent: connect.dragSource(),
-              }),
-            )(({ children, connectDragComponent }) => {
-              return connectDragComponent(children);
-            });
             return (
-              <DragComponent
+              <DragSource
                 key={slug}
                 slug={slug}
                 collection={collection}
@@ -137,7 +115,7 @@ class UnpublishedListing extends React.Component {
                     </CardActions>
                   </Card>
                 </div>
-              </DragComponent>
+              </DragSource>
             );
           })
         }
@@ -158,4 +136,4 @@ class UnpublishedListing extends React.Component {
   }
 }
 
-export default DragDropContext(HTML5Backend)(UnpublishedListing);
+export default HTML5DragDrop(UnpublishedListing); // eslint-disable-line
