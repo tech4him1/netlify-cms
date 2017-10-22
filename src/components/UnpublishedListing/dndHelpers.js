@@ -19,27 +19,25 @@ export const DragSource = ReactDNDDragSource(
   }),
 )(({ children, connectDragComponent }) => connectDragComponent(React.Children.only(children)));
 
-export class DropTarget extends React.Component {
-  static propTypes = {
-    onDrop: PropTypes.func.isRequired,
-    children: PropTypes.func.isRequired,
-  };
-  
-  render() {
-    const { onDrop, children } = this.props;
-    ReactDNDDropTarget(
-      DNDNamespace,
-      {
-        drop(ownProps, monitor) {
-          onDrop(monitor.getItem());
-        },
+export const DropTarget = ({ onDrop, children: ownChildren, ...ownProps }) => {
+  const DropComponent = ReactDNDDropTarget(
+    DNDNamespace,
+    {
+      drop(ownProps, monitor) {
+        onDrop(monitor.getItem());
       },
-      (connect, monitor) => ({
-        connectDropTarget: connect.dropTarget(),
-        isHovered: monitor.isOver(),
-      }),
-    )(({ connectDropTarget, isHovered }) => connectDropTarget(children(isHovered)));
-  }
+    },
+    (connect, monitor) => ({
+      connectDropTarget: connect.dropTarget(),
+      isHovered: monitor.isOver(),
+    }),
+  )(({ children, connectDropTarget, isHovered }) => connectDropTarget(children(isHovered)));
+
+  return React.createElement(DropComponent, ownProps, ownChildren);
+};
+DropTarget.propTypes = {
+  onDrop: PropTypes.func.isRequired,
+  children: PropTypes.func.isRequired,
 };
 
 export const HTML5DragDrop = component => ReactDNDDragDropContext(ReactDNDHTML5Backend)(component);
