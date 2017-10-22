@@ -17,7 +17,10 @@ export const DragSource = ReactDNDDragSource(
   (connect, monitor) => ({
     connectDragComponent: connect.dragSource(),
   }),
-)(({ children, connectDragComponent }) => connectDragComponent(React.Children.only(children)));
+)(({ children, connectDragComponent }) => children(connectDragComponent));
+DragSource.propTypes = {
+  children: PropTypes.func.isRequired,
+};
 
 export const DropTarget = ({ onDrop, children: ownChildren, ...ownProps }) => {
   const DropComponent = ReactDNDDropTarget(
@@ -31,9 +34,9 @@ export const DropTarget = ({ onDrop, children: ownChildren, ...ownProps }) => {
       connectDropTarget: connect.dropTarget(),
       isHovered: monitor.isOver(),
     }),
-  )(({ children, connectDropTarget, isHovered }) => connectDropTarget(children(isHovered)));
+  )(({ children, connectDropTarget, isHovered }) => children(connectDropTarget, { isHovered }));
 
-  return React.createElement(DropComponent, ownProps, ownChildren);
+  return (<DropComponent {...ownProps}>{ownChildren}</DropComponent>);
 };
 DropTarget.propTypes = {
   onDrop: PropTypes.func.isRequired,

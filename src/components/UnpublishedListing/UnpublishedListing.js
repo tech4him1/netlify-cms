@@ -49,7 +49,7 @@ class UnpublishedListing extends React.Component {
           onDrop={this.handleChangeStatus.bind(this, currColumn)}
           /* eslint-enable */
         >
-          {isHovered => (
+          {(connect, { isHovered }) => connect(
             <div className={isHovered ? styles.columnHovered : styles.column}>
               <h2 className={styles.columnHeading}>
                 {statusDescriptions.get(currColumn)}
@@ -79,6 +79,7 @@ class UnpublishedListing extends React.Component {
                 collection={collection}
                 ownStatus={ownStatus}
               >
+              {connect => connect(
                 <div className={styles.draggable}>
                   <Card className={styles.card}>
                     <UnpublishedListingCardMeta
@@ -115,6 +116,7 @@ class UnpublishedListing extends React.Component {
                     </CardActions>
                   </Card>
                 </div>
+              )}
               </DragSource>
             );
           })
