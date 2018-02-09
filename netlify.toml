@@ -1,2 +1,3 @@
 [build]
-command = "npm run build && cp example/* dist/ && mv src dist"
+publish = "public"
+command = "npm run build && mkdir public && mv dist src package.json public"
