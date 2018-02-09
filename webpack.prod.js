@@ -14,7 +14,7 @@ module.exports = merge.smart(require('./webpack.base.js'), {
     filename: '[name].js',
     library: 'netlify-cms',
     libraryTarget: 'umd',
-    umdNamedDefine: true,
+    umdNamedDefine: true
   },
   context: path.join(__dirname, 'src'),
   plugins: [
@@ -49,6 +49,9 @@ module.exports = merge.smart(require('./webpack.base.js'), {
 
       // file and reference
       filename: '[file].map',
+
+      noSources: true,
+      moduleFilenameTemplate: info => path.posix.normalize(`../src/${ info.resourcePath }`),
     }),
   ],
 });
