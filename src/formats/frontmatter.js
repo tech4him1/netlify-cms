@@ -1,3 +1,4 @@
+import { List } from 'immutable';
 import matter from 'gray-matter';
 import tomlFormatter from './toml';
 import yamlFormatter from './yaml';
@@ -67,7 +68,14 @@ class FrontmatterFormatter {
 
   fromFile(content) {
     const format = this.format || inferFrontmatterFormat(content);
-    if (this.customDelimiter) this.format.delimiters = this.customDelimiter;
+    if (this.customDelimiter) {
+      if (List.isList(this.customDelimiter)) {
+        this.format.delimiters = this.customDelimiter.toArray();
+      } else {
+        this.format.delimiters = this.customDelimiter;
+      }
+    }
+
     const result = matter(content, { engines: parsers, ...format });
     return {
       ...result.data,
@@ -80,7 +88,13 @@ class FrontmatterFormatter {
 
     // Stringify to YAML if the format was not set
     const format = this.format || getFormatOpts('yaml');
-    if (this.customDelimiter) this.format.delimiters = this.customDelimiter;
+    if (this.customDelimiter) {
+      if (List.isList(this.customDelimiter)) {
+        this.format.delimiters = this.customDelimiter.toArray();
+      } else {
+        this.format.delimiters = this.customDelimiter;
+      }
+    }
 
     // `sortedKeys` is not recognized by gray-matter, so it gets passed through to the parser
     return matter.stringify(body, meta, { engines: parsers, sortedKeys, ...format });
