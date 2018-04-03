@@ -79,6 +79,10 @@ export default class API {
       if (contentType && contentType.match(/json/)) {
         return this.parseJsonResponse(response);
       }
+      if (options.responseType === "blob") {
+        // TODO: GitHub always returns the blob with a mimetype of text/plain if Accept is set to raw.
+        return response.blob();
+      }
       const text = response.text();
       if (!response.ok) {
         return Promise.reject(text);
@@ -155,34 +159,37 @@ export default class API {
     });
   }
 
-  readFile(path, sha, branch = this.branch) {
+  readFile(path, sha, { branch = this.branch, parseText = true } = {}) {
     if (sha) {
-      return this.getBlob(sha);
+      return this.getBlob(sha, { parseText });
     } else {
       return this.request(`${ this.repoURL }/contents/${ path }`, {
         headers: { Accept: "application/vnd.github.VERSION.raw" },
         params: { ref: branch },
         cache: "no-store",
+        responseType: (!parseText ? "blob" : "text"),
       }).catch(error => {
         if (hasIn(error, 'message.errors') && find(error.message.errors, { code:  "too_large" })) {
           const dir = path.split('/').slice(0, -1).join('/');
           return this.listFiles(dir)
             .then(files => files.find(file => file.path === path))
-            .then(file => this.getBlob(file.sha));
+            .then(file => this.getBlob(file.sha, { parseText }));
         }
         throw error;
       });
     }
   }
 
-  getBlob(sha) {
-    return LocalForage.getItem(`gh.${sha}`).then(cached => {
+  getBlob(sha, { parseText = true } = {}) {
+    const cacheKey = parseText ? `gh.${sha}` : `gh.${sha}.blob`;
+    return LocalForage.getItem(cacheKey).then(cached => {
       if (cached) { return cached; }
 
       return this.request(`${this.repoURL}/git/blobs/${sha}`, {
         headers: { Accept: "application/vnd.github.VERSION.raw" },
+        responseType: (!parseText ? "blob" : "text"),
       }).then(result => {
-        LocalForage.setItem(`gh.${sha}`, result);
+        LocalForage.setItem(cacheKey, result);
         return result;
       });
     });
@@ -207,7 +214,7 @@ export default class API {
     return resolvePromiseProperties({
       metaData: metaDataPromise,
       fileData: metaDataPromise.then(
-        data => this.readFile(data.objects.entry.path, null, data.branch)),
+        data => this.readFile(data.objects.entry.path, null, { branch: data.branch })),
       isModification: metaDataPromise.then(
         data => this.isUnpublishedEntryModification(data.objects.entry.path, this.branch)),
     })
@@ -217,7 +224,7 @@ export default class API {
   }
 
   isUnpublishedEntryModification(path, branch) {
-    return this.readFile(path, null, branch)
+    return this.readFile(path, null, { branch })
     .then(data => true)
     .catch((err) => {
       if (err.message && err.message === "Not Found") {

@@ -65,12 +65,12 @@ export default class GitHub {
     return this.fetchFiles(files);
   }
 
-  fetchFiles = (files) => {
+  fetchFiles = (files, apiOptions) => {
     const sem = semaphore(MAX_CONCURRENT_DOWNLOADS);
     const promises = [];
     files.forEach((file) => {
       promises.push(new Promise((resolve, reject) => (
-        sem.take(() => this.api.readFile(file.path, file.sha).then((data) => {
+        sem.take(() => this.api.readFile(file.path, file.sha, apiOptions).then((data) => {
           resolve({ file, data });
           sem.leave();
         }).catch((err = true) => {
@@ -94,12 +94,10 @@ export default class GitHub {
 
   getMedia() {
     return this.api.listFiles(this.config.get('media_folder'))
-      .then(files => files.map(({ sha, name, size, download_url, path }) => {
-        const url = new URL(download_url);
-        if (url.pathname.match(/.svg$/)) {
-          url.search += (url.search.slice(1) === '' ? '?' : '&') + 'sanitize=true';
-        }
-        return { id: sha, name, size, url: url.href, path };
+      .then(files => this.fetchFiles(files, { parseText: false }))
+      .then(files => files.map(({ file: { sha, name, size, path }, data }) => {
+        const url = URL.createObjectURL(data);
+        return { id: sha, name, size, path, url };
       }));
   }
 
