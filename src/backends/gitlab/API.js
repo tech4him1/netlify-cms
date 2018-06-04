@@ -30,6 +30,7 @@ export default class API {
   requestURL = url => flow([unsentRequest.fromURL, this.request])(url);
   responseToJSON = res => res.json()
   responseToText = res => res.text()
+  responseToBlob = res => res.blob()
   requestJSON = req => this.request(req).then(this.responseToJSON);
   requestText = req => this.request(req).then(this.responseToText);
   requestJSONFromURL = url => this.requestURL(url).then(this.responseToJSON);
@@ -49,15 +50,15 @@ export default class API {
     return false;
   });
 
-  readFile = async (path, sha, ref=this.branch) => {
-    const cachedFile = sha ? await LocalForage.getItem(`gl.${ sha }`) : null;
+  readFile = async (path, sha, { parseText = true } = {}) => {
+    const cachedFile = sha ? await LocalForage.getItem(`gl.${ sha }${ (parseText ? '' : '.blob') }`) : null;
     if (cachedFile) { return cachedFile; }
-    const result = await this.requestText({
+    const result = await this.request({
       url: `${ this.repoURL }/repository/files/${ encodeURIComponent(path) }/raw`,
-      params: { ref },
+      params: { ref: this.branch },
       cache: "no-store",
-    });
-    if (sha) { LocalForage.setItem(`gl.${ sha }`, result) }
+    }).then((parseText ? this.responseToText : this.responseToBlob));
+    if (sha) { LocalForage.setItem(`gl.${ sha }${ (parseText ? '' : '.blob') }`, result) }
     return result;
   };
 

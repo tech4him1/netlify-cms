@@ -84,12 +84,12 @@ export default class GitLab {
     });
   }
 
-  fetchFiles = (files) => {
+  fetchFiles = (files, readOpts) => {
     const sem = semaphore(MAX_CONCURRENT_DOWNLOADS);
     const promises = [];
     files.forEach((file) => {
       promises.push(new Promise((resolve, reject) => (
-        sem.take(() => this.api.readFile(file.path, file.id).then((data) => {
+        sem.take(() => this.api.readFile(file.path, file.id, readOpts).then((data) => {
           resolve({ file, data });
           sem.leave();
         }).catch((err) => {
@@ -109,18 +109,16 @@ export default class GitLab {
     }));
   }
 
-  getMedia() {
+  async getMedia() {
     // TODO: list the entire folder to get all media files instead of
     // just the first page, or implement cursor UI for the media
     // library.
-    return this.api.listFiles(this.config.get('media_folder'))
-      .then(({ files }) => files.map(({ id, name, path }) => {
-        const url = new URL(this.api.fileDownloadURL(path));
-        if (url.pathname.match(/.svg$/)) {
-          url.search += (url.search.slice(1) === '' ? '?' : '&') + 'sanitize=true';
-        }
-        return { id, name, url: url.href, path };
-      }));
+    const { files } = await this.api.listFiles(this.config.get('media_folder'));
+    const blobs = await this.fetchFiles(files, { parseText: false });
+    return blobs.map(({ file: { id, name, path }, data }) => {
+      const url = URL.createObjectURL(data);
+      return { id, name, path, url };
+    })
   }
 
 
