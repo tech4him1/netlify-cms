@@ -63,11 +63,6 @@ export default class API {
     return result;
   };
 
-  fileDownloadURL = (path, ref=this.branch) => unsentRequest.toURL(this.buildRequest({
-    url: `${ this.repoURL }/repository/files/${ encodeURIComponent(path) }/raw`,
-    params: { ref },
-  }));
-
   getCursorFromHeaders = headers => {
     // indices and page counts are assumed to be zero-based, but the
     // indices and page counts returned from GitLab are one-based

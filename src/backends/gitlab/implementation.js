@@ -134,8 +134,8 @@ export default class GitLab {
   async persistMedia(mediaFile, options = {}) {
     await this.api.persistFiles([mediaFile], options);
     const { value, path, fileObj } = mediaFile;
-    const url = this.api.fileDownloadURL(path);
-    return { name: value, size: fileObj.size, url, path: trimStart(path, '/') };
+    const blobPromise = Promise.resolve(fileObj);
+    return { name: value, size: fileObj.size, blobPromise, path: trimStart(path, '/') };
   }
 
   deleteFile(path, commitMessage, options) {
