@@ -50,7 +50,7 @@ export default class API {
     return false;
   });
 
-  readFile = async (path, sha, { ref = this.branch, parseText = true }) => {
+  readFile = async (path, sha, { ref = this.branch, parseText = true } = {}) => {
     const cacheKey = parseText ? `gl.${ sha }` : `gl.${ sha }.blob`;
     const cachedFile = sha ? await LocalForage.getItem(cacheKey) : null;
     if (cachedFile) { return cachedFile; }
