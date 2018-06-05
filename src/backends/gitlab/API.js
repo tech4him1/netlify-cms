@@ -56,6 +56,10 @@ export default class API {
       if (options.method === "HEAD" || options.method === "DELETE") {
         return Promise.all([response]);
       }
+      if (options.responseType === "blob") {
+        // TODO: GitLab always returns the blob with a mimetype of text/plain if Accept is set to raw.
+        return Promise.all([response, response.blob()]);
+      }
       if (contentType && contentType.match(/json/)) {
         return Promise.all([response, response.json()]);
       }
@@ -79,18 +83,20 @@ export default class API {
     });
   }
   
-  readFile(path, sha, branch = this.branch) {
-    const cache = sha ? LocalForage.getItem(`gh.${ sha }`) : Promise.resolve(null);
+  readFile(path, sha, { branch = this.branch, parseText = true } = {}) {
+    const cacheKey = parseText ? `gh.${sha}` : `gh.${sha}.blob`;
+    const cache = sha ? LocalForage.getItem(cacheKey) : Promise.resolve(null);
     return cache.then((cached) => {
       if (cached) { return cached; }
       
       return this.request(`${ this.repoURL }/repository/files/${ encodeURIComponent(path) }/raw`, {
         params: { ref: branch },
         cache: "no-store",
+        responseType: (!parseText ? "blob" : "text"),
       })
       .then((result) => {
         if (sha) {
-          LocalForage.setItem(`gh.${ sha }`, result);
+          LocalForage.setItem(cacheKey, result);
         }
         return result;
       });

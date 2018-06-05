@@ -69,12 +69,12 @@ export default class GitLab {
     return this.fetchFiles(files);
   }
 
-  fetchFiles = (files) => {
+  fetchFiles = (files, apiOptions) => {
     const sem = semaphore(MAX_CONCURRENT_DOWNLOADS);
     const promises = [];
     files.forEach((file) => {
       promises.push(new Promise((resolve, reject) => (
-        sem.take(() => this.api.readFile(file.path, file.id).then((data) => {
+        sem.take(() => this.api.readFile(file.path, file.id, apiOptions).then((data) => {
           resolve({ file, data });
           sem.leave();
         }).catch((err) => {
@@ -96,12 +96,10 @@ export default class GitLab {
 
   getMedia(cursor, setCursor) {
     return this.api.listFiles(this.config.get('media_folder'), cursor, setCursor)
-      .then(files => files.map(({ id, name, path }) => {
-        const url = new URL(this.api.fileDownloadURL(path));
-        if (url.pathname.match(/.svg$/)) {
-          url.search += (url.search.slice(1) === '' ? '?' : '&') + 'sanitize=true';
-        }
-        return { id, name, url: url.href, path };
+      .then(files => this.fetchFiles(files, { parseText: false }))
+      .then(files => files.map(({ file: { id, name, path }, data }) => {
+        const url = URL.createObjectURL(data);
+        return { id, name, url, path };
       }));
   }
 
