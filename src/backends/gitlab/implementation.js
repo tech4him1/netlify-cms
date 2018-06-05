@@ -84,12 +84,12 @@ export default class GitLab {
     });
   }
 
-  fetchFiles = (files, apiOptions) => {
+  fetchFiles = (files) => {
     const sem = semaphore(MAX_CONCURRENT_DOWNLOADS);
     const promises = [];
     files.forEach((file) => {
       promises.push(new Promise((resolve, reject) => (
-        sem.take(() => this.api.readFile(file.path, file.id, apiOptions).then((data) => {
+        sem.take(() => this.api.readFile(file.path, file.id).then((data) => {
           resolve({ file, data });
           sem.leave();
         }).catch((err) => {
@@ -110,11 +110,19 @@ export default class GitLab {
   }
 
   getMedia() {
-    return this.api.listAllFiles(this.config.get('media_folder'))
-      .then(files => this.fetchFiles(files, { parseText: false }))
-      .then(files => files.map(({ file: { id, name, path }, data }) => {
-        const url = URL.createObjectURL(data);
-        return { id, name, url, path };
+    const sem = semaphore(MAX_CONCURRENT_DOWNLOADS);
+
+    return this.api.listAllFiles(this.config.get("media_folder"))
+      .then(files => files.map(({ id, name, path }) => {
+        const blobPromise = new Promise((resolve, reject) =>
+          sem.take(() =>
+            this.api.readFile(path, id, { parseText: false })
+              .then(resolve, reject)
+              .finally(() => sem.leave())
+          )
+        );
+
+        return { id, name, blobPromise, path };
       }));
   }
 
