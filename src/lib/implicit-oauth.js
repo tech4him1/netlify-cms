@@ -17,7 +17,7 @@ function validateNonce(check) {
 
 export default class ImplicitAuthenticator {
   constructor(config = {}) {
-    this.auth_url = config.auth_url;
+    this.auth_url = `${ trimEnd(config.base_url, '/') }/${ trim(config.auth_endpoint, '/') }`;
     this.appID = config.app_id;
   }
 
