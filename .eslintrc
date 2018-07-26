@@ -13,5 +13,8 @@
   "globals": {
     "CMS_ENV": true,
     "NETLIFY_CMS_VERSION": true
+  },
+  "rules": {
+    "no-console": [0]
   }
 }
