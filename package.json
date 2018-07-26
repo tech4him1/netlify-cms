@@ -10,6 +10,7 @@
     "test": "cross-env NODE_ENV=test jest --no-cache",
     "dryrun": "lerna publish --skip-npm --skip-git",
     "publish": "npm run bootstrap && npm run dryrun && npm run build && git checkout . && lerna publish",
+    "format": "prettier --write \"{{packages,website,scripts}/**/,}*.{js,css,md,json}\"",
     "add-contributor": "all-contributors add"
   },
   "browserslist": [
