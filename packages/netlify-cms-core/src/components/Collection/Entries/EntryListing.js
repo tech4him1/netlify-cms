@@ -46,7 +46,7 @@ export default class EntryListing extends React.Component {
     const { collections, entries, publicFolder, viewStyle } = this.props;
     const inferedFields = this.inferFields(collections);
     const entryCardProps = { collection: collections, inferedFields, publicFolder, viewStyle };
-    return entries.map((entry, idx) => <EntryCard {...{ ...entryCardProps, entry, key: idx }} />);
+    return entries.map((entry, idx) => <EntryCard {...{ ...entryCardProps, entry, key: idx }} />);  // eslint-disable-line react/jsx-key
   };
 
   renderCardsForMultipleCollections = () => {
@@ -57,7 +57,7 @@ export default class EntryListing extends React.Component {
       const collectionLabel = collection.get('label');
       const inferedFields = this.inferFields(collection);
       const entryCardProps = { collection, entry, inferedFields, publicFolder, key: idx, collectionLabel };
-      return <EntryCard {...entryCardProps} />;
+      return <EntryCard {...entryCardProps} />; // eslint-disable-line react/jsx-key
     });
   };
 

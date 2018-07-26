@@ -2,7 +2,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import styled from 'react-emotion';
 import { isEmpty } from 'lodash';
-import Waypoint from 'react-waypoint';
 import { Modal } from 'UI';
 import MediaLibrarySearch from './MediaLibrarySearch';
 import MediaLibraryHeader from './MediaLibraryHeader';
