@@ -10,15 +10,10 @@
     "node": true,
     "jest": true,
   },
-  "globals": {
-    "CMS_ENV": true,
-    "NETLIFY_CMS_VERSION": true
-  },
   "rules": {
     "no-console": [0],
     "react/display-name": [1],
     "react/prop-types": [1],
-    "react/no-deprecated": [1],
     "no-unused-vars": [1],
     "no-useless-escape": [1]
   }
