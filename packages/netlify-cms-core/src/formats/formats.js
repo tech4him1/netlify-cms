@@ -1,5 +1,6 @@
 import { List } from 'immutable';
 import { get } from 'lodash';
+import rawFormatter from './raw';
 import yamlFormatter from './yaml';
 import tomlFormatter from './toml';
 import jsonFormatter from './json';
@@ -7,7 +8,9 @@ import { FrontmatterInfer, frontmatterJSON, frontmatterTOML, frontmatterYAML } f
 
 export const frontmatterFormats = ['yaml-frontmatter', 'toml-frontmatter', 'json-frontmatter'];
 
+// Default extension for a format.
 export const formatExtensions = {
+  raw: 'txt',
   yml: 'yml',
   yaml: 'yml',
   toml: 'toml',
@@ -18,6 +21,7 @@ export const formatExtensions = {
   'yaml-frontmatter': 'md',
 };
 
+// Default format for an extension.
 export const extensionFormatters = {
   yml: yamlFormatter,
   yaml: yamlFormatter,
@@ -30,6 +34,7 @@ export const extensionFormatters = {
 
 const formatByName = (name, customDelimiter) =>
   ({
+    raw: rawFormatter,
     yml: yamlFormatter,
     yaml: yamlFormatter,
     toml: tomlFormatter,
