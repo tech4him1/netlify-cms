@@ -16,11 +16,6 @@ const rules = () => ({
       },
     },
   }),
-  svg: () => ({
-    test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
-    exclude: [/node_modules/],
-    use: 'svg-inline-loader',
-  }),
 });
 
 const plugins = () => {
