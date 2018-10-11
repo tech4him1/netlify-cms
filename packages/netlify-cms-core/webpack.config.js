@@ -13,19 +13,7 @@ module.exports = {
   entry: ['./index.js'],
   module: {
     rules: [
-      ...Object.entries(rules)
-        .filter(([key]) => key !== 'js')
-        .map(([, rule]) => rule()),
-      {
-        test: /\.js$/,
-        exclude: /node_modules/,
-        use: {
-          loader: 'babel-loader',
-          options: {
-            configFile: path.join(__dirname, 'babel.config.js'),
-          },
-        },
-      },
+      ...baseConfig.module.rules,
       {
         test: /\.css$/,
         include: [/(redux-notifications|react-datetime)/],
