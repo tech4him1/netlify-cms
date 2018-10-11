@@ -18,6 +18,7 @@ const presets = () => {
 
 const plugins = () => {
   const defaultPlugins = [
+    'macros',
     'lodash',
     [
       'babel-plugin-transform-builtin-extend',
